@@ -158,8 +158,8 @@ class GenericDirectImporter(AbstractComponent):
                 )
 
         # import the missing linked resources
-        self._import_dependencies(external_data, sync_date)
-
+        # self._import_dependencies(external_data, sync_date)
+        self._import_dependencies(external_data)
         # map_data
         # this one knows how to convert backend data to odoo data
         mapper = self.component(usage="import.mapper")
@@ -201,7 +201,6 @@ class GenericDirectImporter(AbstractComponent):
                     for_create=True, fields=external_fields, **opts
                 )
                 binder.bind_import(external_data, values, now_fmt, for_create=True)
-                print("values: ", values["woocommerce_order_line_ids"])
                 self._create(values)
                 _logger.debug("%d created from Backend %s", binding, external_id)
 
