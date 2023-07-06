@@ -17,19 +17,22 @@ class SaleOrderLineBinder(Component):
     ]
     # internal_alt_id = ["product_id", "price_unit", "product_uom_qty", "order_id"]
 
-    # TODO: REVIEW: Make an heuristic to bind sale order lines without binding but with a sale order binded
+    # TODO: REVIEW: Make an heuristic to bind sale order
+    #  lines without binding but with a sale order binded
     # def _get_internal_record_alt(self, values):
     # model_name = self.unwrap_model()
     # product = self.env['product.product'].search([('name', '=', values.pop('name'))])
     # if not product:
     #     return self.env[model_name]
     # values['product_id'] = product.product_variant_ids.ids
-    # order = self.env['sale.order'].search([('client_order_ref', '=', values.get('order_id'))])
+    # order = self.env['sale.order'].search(
+    # [('client_order_ref', '=', values.get('order_id'))])
     # if not order:
     #     return self.env[model_name]
     # values['order_id'] = order.id
     # line = super()._get_internal_record_alt(values)
     # if line:
     #     if len(line) > 1:
-    #         raise Exception("More than one sale order line found for this order, it's not possible to bind it")
+    #         raise Exception("More than one sale order line found
+    #         for this order, it's not possible to bind it")
     #     return line

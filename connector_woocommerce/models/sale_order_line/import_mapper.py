@@ -47,7 +47,7 @@ class SaleOrderLineImportMapper(Component):
             shipping_product = self.backend_record.shipping_product_id
             if not shipping_product:
                 raise ValidationError(
-                    "Shipping product not found, please define it on Backend"
+                    _("Shipping product not found, please define it on Backend")
                 )
             return {"product_id": shipping_product.id}
         if record.get("variation_id"):
@@ -105,12 +105,9 @@ class SaleOrderLineImportMapper(Component):
         order = binder.to_internal(external_id, unwrap=True)
         return {"order_id": order}
 
-    # @mapping
-    # def woocommerce_discount(self, record):
-    #     return {"woocommerce_discount": record["discount"]}
     @mapping
     def woocommerce_discount(self, record):
         return {
-                "woocommerce_discount": record["discount"],
-                "discount": record["discount"]
-                }
+            "woocommerce_discount": record["discount"],
+            "discount": record["discount"],
+        }

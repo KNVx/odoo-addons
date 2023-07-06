@@ -18,7 +18,7 @@
         "connector_extension_woocommerce",
         "website_sale",
         "connector_wordpress",
-        "sale_stock"
+        "sale_stock",
     ],
     "data": [
         # "data/ir_cron.xml",

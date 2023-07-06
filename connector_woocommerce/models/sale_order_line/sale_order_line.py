@@ -10,7 +10,8 @@ class SaleOrderLine(models.Model):
     # TODO: check discount on invoices
     # TODO: lotes de facturacion
 
-    # This field is created with digits=False to force de creation with type numeric, like discount.
+    # This field is created with digits=False to force
+    # de creation with type numeric, like discount.
     woocommerce_discount = fields.Float(
         digits=False,
     )
@@ -21,32 +22,81 @@ class SaleOrderLine(models.Model):
     discount = fields.Float(
         digits=False,
     )
-    website_line_state = fields.Selection(
-        compute="_compute_website_line_state",
+    website_order_line_state = fields.Selection(
+        compute="_compute_website_order_line_state",
+        store=True,
         selection=[
-            ("draft", "Draft"),
+            ("processing", "Processing"),
+            ("done", "Done"),
             ("cancel", "Cancel"),
-            ("completed", "Completed"),
-            ("pending", "Pending"),
-            ("on-hold", "On-Hold"),
-            ("trash", "Trash"),
         ],
     )
 
-    @api.depends('order_id.state', "order_id.picking_ids.state")
-    def _compute_website_line_state(self):
+    @api.depends("order_id.state", "order_id.picking_ids", "order_id.picking_ids.state")
+    def _compute_website_order_line_state(self):
         for rec in self:
-            if rec.move_ids:
-                a=1
-            rec.website_line_state = "draft"
-            # else:
-            #     if order_id.state == "draft":
-            #         rec.website_line_state = "draft"
-            #     elif order_id.state == "cancel":
-            #         rec.website_line_state = "cancel"
-            #
-            #     rec.website_line_state = rec.move_ids[0].state
-            # rec.website_line_state = 'always'
+            if rec.product_id.type == "service":
+                if rec.order_id.state in ("sale", "done"):
+                    rec.website_order_line_state = "done"
+                elif rec.order_id.state == "cancel":
+                    rec.website_order_line_state = "cancel"
+                else:
+                    rec.website_order_line_state = "processing"
+            elif rec.product_id.type == "product" or rec.product_id.type == "consu":
+                if rec.stock_move_ids:
+                    if len(rec.stock_move_ids) == 1:
+                        if rec.stock_move_ids[0].state == "cancel":
+                            rec.website_order_line_state = "cancel"
+                        elif rec.stock_move_ids[0].state in (
+                            "draft",
+                            "waiting",
+                            "confirmed",
+                            "partially_available",
+                            "assigned",
+                        ):
+                            rec.website_order_line_state = "processing"
+                        elif rec.stock_move_ids[0].state == "done":
+                            rec.website_order_line_state = "done"
+                    # TODO: acabar este else
+                    else:
+                        for move_states in rec.stock_move_ids.mapped("state"):
+                            if len(move_states) == 1:
+                                if move_states == "cancel":
+                                    rec.website_order_line_state = "cancel"
+                                elif move_states == "done":
+                                    rec.website_order_line_state = "done"
+                                elif move_states in (
+                                    "draft",
+                                    "waiting",
+                                    "confirmed",
+                                    "partially_available",
+                                    "assigned",
+                                ):
+                                    rec.website_order_line_state = "processing"
+                            else:
+                                if any(
+                                    state
+                                    in [
+                                        "draft",
+                                        "waiting",
+                                        "confirmed",
+                                        "partially_available",
+                                        "assigned",
+                                    ]
+                                    for state in move_states
+                                ):
+                                    rec.website_order_line_state = "processing"
+                                else:
+                                    # TODO: states done and cancel, refactor
+                                    rec.website_order_line_state = "done"
+
+                else:
+                    if rec.order_id.state in ("sale", "done"):
+                        rec.website_order_line_state = "done"
+                    elif rec.order_id.state == "cancel":
+                        rec.website_order_line_state = "cancel"
+                    else:
+                        rec.website_order_line_state = "processing"
 
     woocommerce_bind_ids = fields.One2many(
         comodel_name="woocommerce.sale.order.line",
@@ -58,28 +108,27 @@ class SaleOrderLine(models.Model):
     def write(self, vals):
         print("sale order line write -- sale", vals)
         prec = self.env.ref("product.decimal_discount").digits
-        if isinstance(vals, list):
-            for val in vals:
-                if 'woocommerce_discount' in val:
-                    if 'woocommerce_discount' in val:
-                        val['discount'] = val['woocommerce_discount']
-                    elif 'discount' in vals:
-                        val['discount'] = round(val['discount'], precision_digits=prec)
-            return super().write(vals)
-        else:
-            if 'woocommerce_discount' in vals:
-                vals['discount'] = vals['woocommerce_discount']
-            elif 'discount' in vals:
-                vals['discount'] = round(vals['discount'], precision_digits=prec)
-            return super().write(vals)
+        # if isinstance(vals, list):
+        #     for val in vals:
+        #         if 'woocommerce_discount' in val:
+        #             val['discount'] = val['woocommerce_discount']
+        #         elif 'discount' in vals:
+        #             val['discount'] = round(val['discount'], precision_digits=prec)
+        #     return super().write(vals)
+        # else:
+        if "woocommerce_discount" in vals:
+            vals["discount"] = vals["woocommerce_discount"]
+        elif "discount" in vals and not self.woocommerce_discount:
+            vals["discount"] = round(vals["discount"], precision_digits=prec)
+        return super().write(vals)
 
     @api.model_create_multi
     def create(self, vals_list):
         print("sale order line create -- sale", vals_list)
         prec = self.env.ref("product.decimal_discount").digits
         for values in vals_list:
-            if 'woocommerce_discount' in values:
-                values['discount'] = values['woocommerce_discount']
-            elif 'discount' in values:
-                values['discount'] = round(values['discount'], precision_digits=prec)
+            if "woocommerce_discount" in values:
+                values["discount"] = values["woocommerce_discount"]
+            elif "discount" in values:
+                values["discount"] = round(values["discount"], precision_digits=prec)
         return super().create(vals_list)

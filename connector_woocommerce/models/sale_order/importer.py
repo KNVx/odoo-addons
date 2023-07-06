@@ -81,17 +81,11 @@ class WooCommerceSaleOrderImporter(Component):
             if not binding:
                 raise ValidationError(_("Product not found on Odoo"))
 
-    # def _after_import(self, binding):
-    #     sale_order = self.binder_for().unwrap_binding(binding)
-        # for line in sale_order.order_line:
-        #     line._compute_tax_id()
-        #
-        # ## order cancel
-        # if binding.lengow_status == 'canceled':
-        #     sale_order.action_cancel()
-        # else:
-        #     ## order validation
-        #     sale_order.action_confirm()
+    def _after_import(self, binding):
+        sale_order = self.binder_for().unwrap_binding(binding)
+        if sale_order.state == "draft":
+            sale_order.action_confirm()
+
 
 class WooCommerceSaleOrderChunkDelayedImporter(Component):
     """Import the Woocommerce Orders.

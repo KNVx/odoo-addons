@@ -14,8 +14,9 @@ class WooCommerceSaleOrder(Component):
 
     _apply_on = "woocommerce.sale.order"
 
-    # TODO: deberiamos devolver las orders que salen + las que estan trash. El problema es que en el import chunk
-    #  no podemos saber como hacer estos chunks, con que orden, ya que los gets deberian ser distintos
+    # TODO: deberiamos devolver las orders que salen + las que estan trash.
+    #  El problema es que en el import chunk no podemos saber como hacer
+    #  estos chunks, con que orden, ya que los gets deberian ser distintos
     def get_total_items(self, domain=None):
         return super().get_total_items("orders", domain=domain)
 
@@ -37,6 +38,10 @@ class WooCommerceSaleOrder(Component):
         res = self._exec("get", "orders", domain=domain, offset=offset, limit=limit)
         self._reorg_order_data(res)
         return res, len(res)
+
+    def write(self, external_id, data):  # pylint: disable=W8106
+        url_l = ["orders", str(external_id[0])]
+        return self._exec("put", "/".join(url_l), data=data)
 
     def _get_partner_parent(self, dir_type, value):
         # TODO: slug for company name?
@@ -113,8 +118,8 @@ class WooCommerceSaleOrder(Component):
                 item["order_id"] = value["id"]
                 item["is_shipping"] = False
                 item["discount"] = (
-                                       1 - float(item["total"]) / float(item["subtotal"])
-                                   ) * 100
+                    1 - float(item["total"]) / float(item["subtotal"])
+                ) * 100
                 if item.get("variation_id"):
                     value["products"].append(
                         {

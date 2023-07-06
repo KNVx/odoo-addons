@@ -9,3 +9,7 @@ TODO: deberiamos devolver las orders que salen + las que estan trash. El problem
 no podemos saber como hacer estos chunks, con que orden, ya que los gets deberian ser distintos
 
 les orders refund, que fem?
+
+Al tornar un albará: com afecta aixo a woocommerce? no podem fer una devolucio parcial, sino de tota la order.
+Hi ha alguna manera de fer un retorn parcial del producte?
+mirar com retorna la order nº2525. Hi ha un refund
