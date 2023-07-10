@@ -37,11 +37,17 @@ class WooCommerceProductProductExportMapper(Component):
 
     @mapping
     def stock(self, record):
-        return {
-            "manage_stock": True,
-            "stock_quantity": record.qty_available,
-            "stock_status": "instock" if record.qty_available > 0 else "outofstock",
-        }
+        if record.type in ("consu", "service"):
+            stock = {
+                "manage_stock": False,
+            }
+        else:
+            stock = {
+                "manage_stock": True,
+                "stock_quantity": record.qty_available,
+                "stock_status": "instock" if record.qty_available > 0 else "outofstock",
+            }
+        return stock
 
     @mapping
     def parent_id(self, record):

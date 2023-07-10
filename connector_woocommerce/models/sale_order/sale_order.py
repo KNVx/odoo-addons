@@ -37,25 +37,26 @@ class SaleOrder(models.Model):
         ],
     )
 
-    @api.depends("order_line.website_order_line_state")
+    @api.depends(
+        "order_line.website_order_line_state", "picking_ids", "picking_ids.state"
+    )
     def _compute_website_order_state(self):
         for rec in self:
-            for line_states in rec.order_line.mapped("website_order_line_state"):
-                if any(
-                    state
-                    in [
-                        "draft",
-                        "waiting",
-                        "confirmed",
-                        "partially_available",
-                        "assigned",
-                    ]
-                    for state in line_states
-                ):
-                    rec.website_order_state = "processing"
-                    break
-                elif "cancel" in line_states:
-                    rec.website_order_state = "cancel"
-                    break
-                else:
-                    rec.website_order_state = "done"
+            if rec.order_line:
+                line_states = rec.order_line.mapped("website_order_line_state")
+            else:
+                line_states = False
+            if line_states and rec.order_line.website_order_line_state:
+                for line_state in line_states:
+                    if "processing" in line_state:
+                        rec.website_order_state = "processing"
+                        break
+                    if len(line_state) == 1:
+                        if "cancel" in line_state:
+                            rec.website_order_state = "cancel"
+                        else:
+                            rec.website_order_state = "done"
+                    else:
+                        rec.website_order_state = "done"
+            else:
+                rec.website_order_state = "processing"

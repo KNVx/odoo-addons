@@ -57,9 +57,11 @@ class WooCommerceProductProduct(models.Model):
         domain += [
             #     # ("woocommerce_write_date", ">", fields.Datetime.to_string(since_date)),
             #     # ("is_published", "=", True),
-            # ("id", "in", (62558, 62559, 62560))  # variable product+simple product
-            # ("id", "in", (62558, 62559))  # variable product
-            ("id", "=", 62564)  # simple product
+            # woocommerce_product_test  woocommerce_product_variant_test
+            ("id", "in", (62564, 62568, 62569, 62570))  # simple product + variable product
+            # ("id", "in", (62568, 62569))  # variable product
+            # ("id", "=", 62564)  # simple product
+            # 62570 simple service product
         ]
         self.export_batch(backend_record, domain=domain)
         return True

@@ -36,12 +36,17 @@ class WooCommerceProductTemplateExportMapper(Component):
 
     @mapping
     def stock(self, record):
+        if record.type in ("consu", "service"):
+            manage_stock = False
+        else:
+            manage_stock = True
         if len(record.product_variant_ids) == 1:
             return {
-                "manage_stock": True,
+                "manage_stock": manage_stock,
                 "stock_quantity": record.product_variant_id.qty_available,
                 "stock_status": "instock"
                 if record.product_variant_id.qty_available > 0
+                   or record.type in ("consu", "service")
                 else "outofstock",
             }
         else:
@@ -133,7 +138,6 @@ class WooCommerceProductTemplateExportMapper(Component):
                         }
                     )
                 return {"images": img_list}
-
 
 # TODO: asi funcionaria? nos ahorrariamos un search
 # im1_domain = [
